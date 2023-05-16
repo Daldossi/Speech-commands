@@ -31,10 +31,10 @@ def make_confusion_matrix(predictions, labels):
     for i in range(predictions.size): # for each pair of prediction in the true label
         cmat[labels[i], predictions[i]] += 1 
         if predictions[i] != labels[i]: 
-            errs.append([i, predictions[i], labels[i]]) 
+            errs.append([i, labels[i], predictions[i]]) 
     s = cmat.sum(1, keepdims=True)
-    cmat /= s
-    return cmat, errs
+    cmat /= s 
+    return cmat, errs 
 
 def dispaly_confusion_matrix(cmat): 
     """ display a confusion matrix cmat such that: 
@@ -72,6 +72,7 @@ def dispaly_confusion_matrix2(cmat):
     
 
 
+
 ## 1. IMPORT THE DATA 
 words = open("classes.txt").read().split()
 data = np.load("train.npz") 
@@ -84,6 +85,7 @@ data = np.load("validation.npz")
 Xval = data["arr_0"] 
 Yval = data["arr_1"]
 
+
 ## 2. NORMALIZATION
 Xtrain, Xtest, Xval = meanvar_normalization(Xtrain, Xtest, Xval) 
 # mu = Xtrain.mean(0) 
@@ -91,16 +93,19 @@ Xtrain, Xtest, Xval = meanvar_normalization(Xtrain, Xtest, Xval)
 # Xtrain = (Xtrain - mu) / std 
 # Xtest = (Xtest - mu) / std 
 
+
 ## 3. IMPORT THE NETWORK
 network = pvml.MLP.load("mlp.npz") 
 show_weights(network) 
 
+
 ## 4. FIND THE CONFUSION MATRIX
 predictions, logit = network.inference(Xtest) 
 cmat, E = make_confusion_matrix(predictions, Ytest) 
-dispaly_confusion_matrix(cmat) 
+# dispaly_confusion_matrix(cmat) 
+# dispaly_confusion_matrix2(cmat) 
 # print('indici di valore massimo:', np.argwhere(cmat == cmat.max()))
-# print('parola più corretta:', words[25]) # words[25]='six' è la parola che viene predetta meglio
+# print('parola meglio predetta:', words[25]) # words[25]='six' è la parola che viene predetta meglio
 ## six=[0.        , 0.0058651 , 0.00879765, 0.        , 0.00293255,
        # 0.        , 0.09384164, 0.        , 0.        , 0.        ,
        # 0.        , 0.        , 0.        , 0.        , 0.00293255,
@@ -111,21 +116,21 @@ dispaly_confusion_matrix(cmat)
 # print(words[28]) # words[28]='tree' ha il set più ridotto di parole con cui viene confusa (riga con più zeri)
 # len(list(np.argwhere(cmat == cmat.min())))=322 # numero totale di zeri
 
-## 5. EXAMPLE OF MISCLASSIFICATION
+
+## 5. EXAMPLE OF MISCLASSIFICATION 
 R = random.randint(0, len(E)) 
 index_mis = E[R] # chosen misclassification 
-print("Example:", words[index_mis[2]] , "misclassified as", words[index_mis[1]]) 
-## Draw the spectogram
-spectrogram = Xtest[R, :].reshape(20, 80)
-plt.imshow(spectrogram)
-plt.colorbar()
-plt.title(words[Ytest[R]])
-plt.show()
-## Find the name of the audio
-names = open("test-names.txt").read().split()
-ttl = names[R+1]
-print('File name:', ttl)
+print("Example:", words[index_mis[1]] , "misclassified as", words[index_mis[2]]) 
+## Draw the spectogram 
+spectrogram = Xtest[index_mis[0], :].reshape(20, 80) 
+plt.imshow(spectrogram) 
+plt.colorbar() 
+plt.title(words[Ytest[index_mis[0]]]) # equivalently: plt.title(words[index_mis[1]]) 
+plt.show() 
+## Find the name of the audio 
+names = open("test-names.txt").read().split() 
+ttl = names[index_mis[0]] 
+print('File name:', ttl) 
 
-# GOOD EXMPLE : R=2304 - word=four - file=four/234d6a48_nohash_1.wav
 
 
