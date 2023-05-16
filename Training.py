@@ -108,22 +108,27 @@ if __name__ == "__main__":
     std = Xtrain.std(0) 
     draw_spect(std, "Std behaviour") 
     
-    ## Perform normalization
-    # Xtrain_mm, Xtest_mm, Xval_mm = minmax_normalization(Xtrain, Xtest, Xval) 
-    Xtrain_mv, Xtest_mv, Xval_mv = meanvar_normalization(Xtrain, Xtest, Xval) 
-    # Xtrain_abs, Xtest_abs, Xval_abs = maxabs_normalization(Xtrain, Xtest, Xval) 
-    # Xtrain_w, Xtest_w, Xval_w = whitening(Xtrain, Xtest, Xval) 
-    # Xtrain_i = instance(Xtrain, "l2")
-    # Xtest_i = instance(Xtest, "l2")
-    # Xval_i = instance(Xval, "l2")
-    
-    ## Draw the data
-    # draw_spect(Xtrain[0, :], "No normalization") 
-    # draw_spect(Xtrain_mm[0, :], "MinMax normalization") 
-    draw_spect(Xtrain_mv[0, :], "MeanVar normalization") 
-    # draw_spect(Xtrain_abs[0, :], "MaxAbs normalization") 
-    # draw_spect(Xtrain_w[0, :], "Whitening") 
-    # draw_spect(Xtrain_i[0, :], "Instance normalization") 
+    ## Perform normalization and draw the data
+    norm = 'whitening'
+    if norm == 'no': 
+        draw_spect(Xtrain[0, :], "No normalization") 
+    elif norm == 'minmax': 
+        Xtrain, Xtest, Xval = minmax_normalization(Xtrain, Xtest, Xval) 
+        draw_spect(Xtrain[0, :], "MinMax normalization") 
+    elif norm == 'meanvar': 
+        Xtrain, Xtest, Xval = meanvar_normalization(Xtrain, Xtest, Xval)
+        draw_spect(Xtrain[0, :], "MeanVar normalization")
+    elif norm == 'maxabs': 
+        Xtrain, Xtest, Xval = maxabs_normalization(Xtrain, Xtest, Xval) 
+        draw_spect(Xtrain[0, :], "MaxAbs normalization") 
+    elif norm == 'whitening': 
+        Xtrain, Xtest, Xval = whitening(Xtrain, Xtest, Xval) 
+        draw_spect(Xtrain[0, :], "Whitening") 
+    elif norm == 'instance':
+        Xtrain = instance(Xtrain, "l2")
+        Xtest = instance(Xtest, "l2")
+        Xval = instance(Xval, "l2")
+        draw_spect(Xtrain[0, :], "Instance normalization") 
     
     
     ## 2. TRAINING THE MULTILAYER PERCEPTRON
@@ -132,22 +137,20 @@ if __name__ == "__main__":
     ## - size of the last layer = 35: number of classes
     ARC = [1600, 35] 
     # ARC = [1600, 600, 35]
-    # ARC = [1600, 600, 280, 35]
-    # ARC = [1600, 600, 280, 100, 35]
-    # ARC = [1600, 900, 600, 300, 35]
+    # ARC = [1600, 600, 300, 35]
+    # ARC = [1600, 600, 300, 150, 35]
+    ARC = [1600, 900, 600, 300, 35]
     
     network = pvml.MLP(ARC) 
-    R = 50 # number of epoches
-    Xtrain = Xtrain_mv 
-    Xtest = Xtest_mv 
-    Xval = Xval_mv 
+    # R = 100 # number of epoches
+    R = 50 
     m = Xtrain.shape[0] 
     
     for epoch in range(R+1): 
         # network.train(Xtrain, Ytrain, lr=1e-4, steps=1, batch=m) 
         # network.train(Xtrain, Ytrain, lr=1e-4, steps=m//20, batch=1) 
-        # network.train(Xtrain, Ytrain, lr=1e-4, steps=m//20, batch=30) 
-        network.train(Xtrain, Ytrain, lr=1e-4, steps=m//20, batch=60) 
+        network.train(Xtrain, Ytrain, lr=1e-4, steps=m//20, batch=30) 
+        # network.train(Xtrain, Ytrain, lr=1e-4, steps=m//20, batch=60) 
         if epoch % 5 == 0: 
             train_acc = accuracy(network, Xtrain, Ytrain) 
             test_acc = accuracy(network, Xtest, Ytest) 
@@ -157,7 +160,7 @@ if __name__ == "__main__":
     
     ## 3. REMEMBER
     
-    network.save("mlp.npz")
+    # network.save("mlp.npz")
     
 
     
